@@ -157,7 +157,7 @@
 				for (var rowIndex = 0; rowIndex < this.maxRows; ++rowIndex) {
 					for (var colIndex = 0; colIndex < this.columns; ++colIndex) {
 						// only insert if position is not already taken and it can fit
-						var items = this.getItems(rowIndex, colIndex, item.sizeX, item.sizeY, item, item.zIndex);
+						var items = this.getItems(rowIndex, colIndex, item.sizeX, item.sizeY, item.zIndex, item);
 						if (items.length === 0 && this.canItemOccupy(item, rowIndex, colIndex)) {
 							this.putItem(item, rowIndex, colIndex);
 							return;
@@ -175,10 +175,10 @@
 			 * @param {Number} sizeX
 			 * @param {Number} sizeY
 			 * @param {Array} excludeItems An array of items to exclude from selection
-			 * @param {Number} zindex
+			 * @param {Number} zIndex
 			 * @returns {Array} Items that match the criteria
 			 */
-			this.getItems = function(row, column, sizeX, sizeY, excludeItems, zindex) {
+			this.getItems = function(row, column, sizeX, sizeY, zIndex, excludeItems) {
 				var items = [];
 				if (!sizeX || !sizeY) {
 					sizeX = sizeY = 1;
@@ -190,9 +190,11 @@
 					for (var w = 0; w < sizeX; ++w) {
 						var item = this.getItem(row + h, column + w, excludeItems);
 						if (item && (!excludeItems || excludeItems.indexOf(item) === -1) && items.indexOf(item) === -1) {
-							var zi = item.zIndex;
-							if ((typeof(zindex) === 'undefined' && typeof(zi) === 'undefined') || (typeof(zindex) !== 'undefined' && zi !== zindex))
+							var zi = item['zIndex'];
+							if ((typeof(zIndex) === 'undefined' && typeof(zi) === 'undefined') ||
+								(typeof(zIndex) !== 'undefined' && zi === zIndex)) {
 								items.push(item);
+							}
 						}
 					}
 				}
