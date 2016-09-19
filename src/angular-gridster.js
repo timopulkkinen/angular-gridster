@@ -157,7 +157,7 @@
 				for (var rowIndex = 0; rowIndex < this.maxRows; ++rowIndex) {
 					for (var colIndex = 0; colIndex < this.columns; ++colIndex) {
 						// only insert if position is not already taken and it can fit
-						var items = this.getItems(rowIndex, colIndex, item.sizeX, item.sizeY, item);
+						var items = this.getItems(rowIndex, colIndex, item.sizeX, item.sizeY, item, item.zIndex);
 						if (items.length === 0 && this.canItemOccupy(item, rowIndex, colIndex)) {
 							this.putItem(item, rowIndex, colIndex);
 							return;
@@ -175,9 +175,10 @@
 			 * @param {Number} sizeX
 			 * @param {Number} sizeY
 			 * @param {Array} excludeItems An array of items to exclude from selection
+			 * @param {Number} zindex
 			 * @returns {Array} Items that match the criteria
 			 */
-			this.getItems = function(row, column, sizeX, sizeY, excludeItems) {
+			this.getItems = function(row, column, sizeX, sizeY, excludeItems, zindex) {
 				var items = [];
 				if (!sizeX || !sizeY) {
 					sizeX = sizeY = 1;
@@ -189,7 +190,11 @@
 					for (var w = 0; w < sizeX; ++w) {
 						var item = this.getItem(row + h, column + w, excludeItems);
 						if (item && (!excludeItems || excludeItems.indexOf(item) === -1) && items.indexOf(item) === -1) {
-							items.push(item);
+
+							var zi = item.zIndex;
+							console.log(zIndex, zi);
+							if ((typeof(zindex) === 'undefined' && typeof(zi) === 'undefined') || (typeof(zindex) !== 'undefined' && zi !== zindex))
+								items.push(item);
 						}
 					}
 				}
@@ -397,6 +402,7 @@
 					item.col,
 					item.sizeX,
 					item.sizeY,
+					item.zIndex,
 					ignoreItems
 				);
 				this.moveItemsDown(overlappingItems, item.row + item.sizeY, ignoreItems);
@@ -490,12 +496,13 @@
 				var colIndex = item.col,
 					sizeY = item.sizeY,
 					sizeX = item.sizeX,
+					zIndex = item.zIndex,
 					bestRow = null,
 					bestColumn = null,
 					rowIndex = item.row - 1;
 
 				while (rowIndex > -1) {
-					var items = this.getItems(rowIndex, colIndex, sizeX, sizeY, item);
+					var items = this.getItems(rowIndex, colIndex, sizeX, sizeY, zIndex, item);
 					if (items.length !== 0) {
 						break;
 					}
@@ -824,6 +831,7 @@
 		this.minSizeY = 0;
 		this.maxSizeX = null;
 		this.maxSizeY = null;
+		this.zIndex = null;
 
 		this.init = function($element, gridster) {
 			this.$element = $element;
@@ -846,7 +854,8 @@
 				row: this.row,
 				col: this.col,
 				sizeY: this.sizeY,
-				sizeX: this.sizeX
+				sizeX: this.sizeX,
+				zIndex: this.zIndex
 			};
 		};
 
@@ -943,6 +952,13 @@
 			return this.setSize('X', columns, preventMove);
 		};
 
+		/**
+		 * Sets the items zIndex property
+		 * @param {Number} zIndex
+		 */
+		this.setZIndex = function(zIndex) {
+			this.zIndex = zIndex;
+		};
 		/**
 		 * Sets an elements position on the page
 		 */
@@ -1366,7 +1382,7 @@
 					var row = Math.min(gridster.pixelsToRows(elmY), gridster.maxRows - 1);
 					var col = Math.min(gridster.pixelsToColumns(elmX), gridster.columns - 1);
 
-					var itemsInTheWay = gridster.getItems(row, col, item.sizeX, item.sizeY, item);
+					var itemsInTheWay = gridster.getItems(row, col, item.sizeX, item.sizeY, item.zIndex, item);
 					var hasItemsInTheWay = itemsInTheWay.length !== 0;
 
 					if (gridster.swapping === true && hasItemsInTheWay) {
@@ -1397,6 +1413,7 @@
 									itemInTheWay.col + colOffset,
 									itemInTheWay.sizeX,
 									itemInTheWay.sizeY,
+									itemInTheWay.zIndex,
 									item
 								);
 
@@ -1437,7 +1454,7 @@
 					$el.removeClass('gridster-item-moving');
 					var row = Math.min(gridster.pixelsToRows(elmY), gridster.maxRows - 1);
 					var col = Math.min(gridster.pixelsToColumns(elmX), gridster.columns - 1);
-					if (gridster.pushing !== false || gridster.getItems(row, col, item.sizeX, item.sizeY, item).length === 0) {
+					if (gridster.pushing !== false || gridster.getItems(row, col, item.sizeX, item.sizeY, item.zIndex, item).length === 0) {
 						item.row = row;
 						item.col = col;
 					}
@@ -1718,9 +1735,11 @@
 						sizeY = gridster.pixelsToRows(elmH, true);
 					}
 
+					var zIndex = item.zIndex;
+
 
 					var canOccupy = row > -1 && col > -1 && sizeX + col <= gridster.columns && sizeY + row <= gridster.maxRows;
-					if (canOccupy && (gridster.pushing !== false || gridster.getItems(row, col, sizeX, sizeY, item).length === 0)) {
+					if (canOccupy && (gridster.pushing !== false || gridster.getItems(row, col, sizeX, sizeY, zIndex, item).length === 0)) {
 						item.row = row;
 						item.col = col;
 						item.sizeX = sizeX;
@@ -2016,7 +2035,8 @@
 								minSizeX: 0,
 								minSizeY: 0,
 								maxSizeX: null,
-								maxSizeY: null
+								maxSizeY: null,
+								zIndex: item.zIndex
 							};
 							$optionsGetter.assign(scope, options);
 						}
@@ -2026,9 +2046,12 @@
 
 					item.init($el, gridster);
 
+					if (typeof item.zIndex !== 'undefined')
+						$el.css('z-index', item.zIndex);
+
 					$el.addClass('gridster-item');
 
-					var aspects = ['minSizeX', 'maxSizeX', 'minSizeY', 'maxSizeY', 'sizeX', 'sizeY', 'row', 'col'],
+					var aspects = ['minSizeX', 'maxSizeX', 'minSizeY', 'maxSizeY', 'sizeX', 'sizeY', 'row', 'col', 'zIndex'],
 						$getters = {};
 
 					var expressions = [];
@@ -2112,6 +2135,16 @@
 					scope.$watch(function() {
 						return item.sizeY + ',' + item.sizeX + ',' + item.minSizeX + ',' + item.maxSizeX + ',' + item.minSizeY + ',' + item.maxSizeY;
 					}, sizeChanged);
+
+					function zIndexChanged(val) {
+						item.$element.css('z-index', val);
+						scope.$broadcast('gridster-item-zindex-changed', item);
+					}
+
+					scope.$watch(function() {
+						return item.zIndex
+					}, zIndexChanged);
+
 
 					var draggable = new GridsterDraggable($el, scope, gridster, item, options);
 					var resizable = new GridsterResizable($el, scope, gridster, item, options);

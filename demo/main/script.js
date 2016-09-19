@@ -35,7 +35,8 @@ angular.module('app')
 		sizeX: 2,
 		sizeY: 1,
 		row: 0,
-		col: 0
+		col: 0,
+		zIndex: 20
 	}, {
 		sizeX: 2,
 		sizeY: 2,
