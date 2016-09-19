@@ -190,9 +190,7 @@
 					for (var w = 0; w < sizeX; ++w) {
 						var item = this.getItem(row + h, column + w, excludeItems);
 						if (item && (!excludeItems || excludeItems.indexOf(item) === -1) && items.indexOf(item) === -1) {
-
 							var zi = item.zIndex;
-							console.log(zIndex, zi);
 							if ((typeof(zindex) === 'undefined' && typeof(zi) === 'undefined') || (typeof(zindex) !== 'undefined' && zi !== zindex))
 								items.push(item);
 						}
