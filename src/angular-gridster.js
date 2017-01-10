@@ -190,7 +190,7 @@
 					for (var w = 0; w < sizeX; ++w) {
 						var item = this.getItem(row + h, column + w, excludeItems);
 						if (item && (!excludeItems || excludeItems.indexOf(item) === -1) && items.indexOf(item) === -1) {
-							var zi = item['zIndex'];
+							var zi = item.zIndex;
 							if ((typeof(zIndex) === 'undefined' && typeof(zi) === 'undefined') ||
 								(typeof(zIndex) !== 'undefined' && zi === zIndex)) {
 								items.push(item);
@@ -2046,9 +2046,9 @@
 
 					item.init($el, gridster);
 
-					if (typeof item.zIndex !== 'undefined')
+					if (typeof item.zIndex !== 'undefined') {
 						$el.css('z-index', item.zIndex);
-
+					}
 					$el.addClass('gridster-item');
 
 					var aspects = ['minSizeX', 'maxSizeX', 'minSizeY', 'maxSizeY', 'sizeX', 'sizeY', 'row', 'col', 'zIndex'],
@@ -2142,7 +2142,7 @@
 					}
 
 					scope.$watch(function() {
-						return item.zIndex
+						return item.zIndex;
 					}, zIndexChanged);
 
 
