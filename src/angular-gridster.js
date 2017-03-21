@@ -26,13 +26,13 @@
 		floating: true, // whether to automatically float items up so they stack
 		swapping: false, // whether or not to have items switch places instead of push down if they are the same size
 		width: 'auto', // width of the grid. "auto" will expand the grid to its parent container
-		colWidth: 'auto', // width of grid columns. "auto" will divide the width of the grid evenly among the columns
+		colWidth: 'fit', // width of grid columns. "auto" will divide the width of the grid evenly among the columns, "fit" here and "match" in rowHeight selects max width that allows square cells
 		rowHeight: 'match', // height of grid rows. 'match' will make it the same as the column width, a numeric value will be interpreted as pixels, '/2' is half the column width, '*5' is five times the column width, etc.
 		margins: [10, 10], // margins in between grid items
 		outerMargin: true,
 		isMobile: false, // toggle mobile view
 		mobileBreakPoint: 600, // width threshold to toggle mobile mode
-		mobileModeEnabled: true, // whether or not to toggle mobile mode when screen width is less than mobileBreakPoint
+		mobileModeEnabled: false, // whether or not to toggle mobile mode when screen width is less than mobileBreakPoint
 		minColumns: 1, // minimum amount of columns the grid can scale down to
 		minRows: 1, // minimum amount of rows to show if the grid is empty
 		maxRows: 100, // maximum amount of rows in the grid
@@ -535,6 +535,7 @@
 					}
 				}
 				this.gridHeight = this.maxRows - maxHeight > 0 ? Math.min(this.maxRows, maxHeight) : Math.max(this.maxRows, maxHeight);
+				if(this.gridHeight<this.minRows) this.gridHeight = this.minRows;
 			};
 
 			/**
@@ -626,7 +627,6 @@
 				controller: 'GridsterCtrl',
 				controllerAs: 'gridster',
 				compile: function($tplElem) {
-
 					$tplElem.prepend('<div ng-if="gridster.movingItem" gridster-preview></div>');
 
 					return function(scope, $elem, attrs, gridster) {
@@ -643,7 +643,9 @@
 						};
 
 						function updateHeight() {
-							$elem.css('height', (gridster.gridHeight * gridster.curRowHeight) + (gridster.outerMargin ? gridster.margins[0] : -gridster.margins[0]) + 'px');
+							if(gridster.gridHeight > 0 && gridster.curRowHeight > 0) {
+								$elem.css('height', (gridster.gridHeight * gridster.curRowHeight) + (gridster.outerMargin ? gridster.margins[0] : -gridster.margins[0]) + 'px');
+							}
 						}
 
 						scope.$watch(function() {
@@ -664,26 +666,58 @@
 							}
 
 							// resolve "auto" & "match" values
-							if (gridster.width === 'auto') {
+							if (gridster.width === 'auto' ) {
 								gridster.curWidth = $elem[0].offsetWidth || parseInt($elem.css('width'), 10);
 							} else {
 								gridster.curWidth = gridster.width;
 							}
 
-							if (gridster.colWidth === 'auto') {
+							if (gridster.colWidth === 'auto' || gridster.colWidth === 'fit') {
 								gridster.curColWidth = (gridster.curWidth + (gridster.outerMargin ? -gridster.margins[1] : gridster.margins[1])) / gridster.columns;
 							} else {
 								gridster.curColWidth = gridster.colWidth;
 							}
 
+
+
 							gridster.curRowHeight = gridster.rowHeight;
+
 							if (typeof gridster.rowHeight === 'string') {
 								if (gridster.rowHeight === 'match') {
-									gridster.curRowHeight = Math.round(gridster.curColWidth);
+									console.log('row height: match');
+									if(gridster.colWidth === 'fit') {
+										gridster.curHeight = $elem[0].offsetHeight || parseInt($elem.css('height'), 10);
+										if(gridster.curHeight === 0) {
+											gridster.curHeight = parseInt($elem.parent().css('height'), 10);
+										}
+										var rh = gridster.curHeight / (gridster.gridHeight?gridster.gridHeight:gridster.minRows); //(gridster.curHeight + (gridster.outerMargin ? -gridster.margins[1] : gridster.margins[1])) / gridster.rows;
+										gridster.curColWidth = rh < gridster.curColWidth ? rh : gridster.curColWidth;
+										gridster.curRowHeight = gridster.curColWidth;
+									} else {
+										var rh = Math.round(gridster.curColWidth);
+										if(rh * gridster.minRows > gridster.height) {
+											gridster.curRowHeight = Math.round( gridster.height / gridster.minRows);
+											gridster.curColWidth = gridster.curRowHeight;
+											setTimeout(function() {
+												$elem.css('width', gridster.curColWidth * gridster.minColumns);
+											},0);
+										} else {
+											gridster.curRowHeight = Math.round(gridster.curColWidth);
+										}
+
+									}
+								} else if(gridster.rowHeight === 'auto') {
+
+									var targetHeight = $elem[0].offsetHeight > 0 ? $elem[0].offsetHeight : $elem.parent()[0].offsetHeight;
+									gridster.curRowHeight = targetHeight / gridster.maxRows;
 								} else if (gridster.rowHeight.indexOf('*') !== -1) {
+
 									gridster.curRowHeight = Math.round(gridster.curColWidth * gridster.rowHeight.replace('*', '').replace(' ', ''));
+
 								} else if (gridster.rowHeight.indexOf('/') !== -1) {
+
 									gridster.curRowHeight = Math.round(gridster.curColWidth / gridster.rowHeight.replace('/', '').replace(' ', ''));
+
 								}
 							}
 
@@ -988,7 +1022,8 @@
 			if (this.gridster.isMobile && !this.gridster.saveGridItemCalculatedHeightInMobile) {
 				this.$element.css('height', '');
 			} else {
-				this.$element.css('height', (this.sizeY * this.gridster.curRowHeight - this.gridster.margins[0]) + 'px');
+				var value = (this.sizeY * this.gridster.curRowHeight - this.gridster.margins[0]);
+				this.$element.css('height', value + 'px');
 			}
 		};
 
@@ -999,7 +1034,8 @@
 			if (this.gridster.isMobile) {
 				this.$element.css('width', '');
 			} else {
-				this.$element.css('width', (this.sizeX * this.gridster.curColWidth - this.gridster.margins[1]) + 'px');
+				var value = (this.sizeX * this.gridster.curColWidth - this.gridster.margins[1]);
+				this.$element.css('width', value + 'px');
 			}
 		};
 
@@ -1696,6 +1732,7 @@
 					item.setElementPosition();
 					gridster.updateHeight(1);
 
+
 					scope.$apply(function() {
 						// callback
 						if (gridster.resizable && gridster.resizable.start) {
@@ -1754,6 +1791,8 @@
 							}
 						});
 					}
+
+
 				}
 
 				function resizeStop(e) {
@@ -2220,6 +2259,6 @@
 		};
 	})
 
-	;
+		;
 
 }));
