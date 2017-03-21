@@ -25,6 +25,7 @@
 		pushing: true, // whether to push other items out of the way
 		floating: true, // whether to automatically float items up so they stack
 		swapping: false, // whether or not to have items switch places instead of push down if they are the same size
+		autoGrow: true, // auto-resize grid when widget is moved or resized
 		width: 'auto', // width of the grid. "auto" will expand the grid to its parent container
 		colWidth: 'fit', // width of grid columns. "auto" will divide the width of the grid evenly among the columns, "fit" here and "match" in rowHeight selects max width that allows square cells
 		rowHeight: 'match', // height of grid rows. 'match' will make it the same as the column width, a numeric value will be interpreted as pixels, '/2' is half the column width, '*5' is five times the column width, etc.
@@ -78,7 +79,7 @@
 					if (gridster.loaded) {
 						gridster.floatItemsUp();
 					}
-					gridster.updateHeight(gridster.movingItem ? gridster.movingItem.sizeY : 0);
+					gridster.updateHeight(gridster.movingItem && gridster.autoGrow ? gridster.movingItem.sizeY : 0);
 				}, 30);
 			};
 
@@ -657,7 +658,7 @@
 						scope.$watch(function() {
 							return gridster.movingItem;
 						}, function() {
-							gridster.updateHeight(gridster.movingItem ? gridster.movingItem.sizeY : 0);
+							gridster.updateHeight(gridster.movingItem && gridster.autoGrow ? gridster.movingItem.sizeY : 0);
 						});
 
 						function refresh(config) {
