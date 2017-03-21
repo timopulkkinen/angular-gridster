@@ -535,7 +535,9 @@
 					}
 				}
 				this.gridHeight = this.maxRows - maxHeight > 0 ? Math.min(this.maxRows, maxHeight) : Math.max(this.maxRows, maxHeight);
-				if(this.gridHeight<this.minRows) this.gridHeight = this.minRows;
+				if (this.gridHeight < this.minRows) {
+					this.gridHeight = this.minRows;
+				}
 			};
 
 			/**
@@ -643,7 +645,7 @@
 						};
 
 						function updateHeight() {
-							if(gridster.gridHeight > 0 && gridster.curRowHeight > 0) {
+							if (gridster.gridHeight > 0 && gridster.curRowHeight > 0) {
 								$elem.css('height', (gridster.gridHeight * gridster.curRowHeight) + (gridster.outerMargin ? gridster.margins[0] : -gridster.margins[0]) + 'px');
 							}
 						}
@@ -666,7 +668,7 @@
 							}
 
 							// resolve "auto" & "match" values
-							if (gridster.width === 'auto' ) {
+							if (gridster.width === 'auto') {
 								gridster.curWidth = $elem[0].offsetWidth || parseInt($elem.css('width'), 10);
 							} else {
 								gridster.curWidth = gridster.width;
@@ -685,28 +687,28 @@
 							if (typeof gridster.rowHeight === 'string') {
 								if (gridster.rowHeight === 'match') {
 									console.log('row height: match');
-									if(gridster.colWidth === 'fit') {
+									if (gridster.colWidth === 'fit') {
 										gridster.curHeight = $elem[0].offsetHeight || parseInt($elem.css('height'), 10);
-										if(gridster.curHeight === 0) {
+										if (gridster.curHeight === 0) {
 											gridster.curHeight = parseInt($elem.parent().css('height'), 10);
 										}
-										var rh = gridster.curHeight / (gridster.gridHeight?gridster.gridHeight:gridster.minRows); //(gridster.curHeight + (gridster.outerMargin ? -gridster.margins[1] : gridster.margins[1])) / gridster.rows;
-										gridster.curColWidth = rh < gridster.curColWidth ? rh : gridster.curColWidth;
+										var rh1 = gridster.curHeight / (gridster.gridHeight ? gridster.gridHeight : gridster.minRows); //(gridster.curHeight + (gridster.outerMargin ? -gridster.margins[1] : gridster.margins[1])) / gridster.rows;
+										gridster.curColWidth = rh1 < gridster.curColWidth ? rh1 : gridster.curColWidth;
 										gridster.curRowHeight = gridster.curColWidth;
 									} else {
 										var rh = Math.round(gridster.curColWidth);
-										if(rh * gridster.minRows > gridster.height) {
-											gridster.curRowHeight = Math.round( gridster.height / gridster.minRows);
+										if (rh * gridster.minRows > gridster.height) {
+											gridster.curRowHeight = Math.round(gridster.height / gridster.minRows);
 											gridster.curColWidth = gridster.curRowHeight;
 											setTimeout(function() {
 												$elem.css('width', gridster.curColWidth * gridster.minColumns);
-											},0);
+											}, 0);
 										} else {
 											gridster.curRowHeight = Math.round(gridster.curColWidth);
 										}
 
 									}
-								} else if(gridster.rowHeight === 'auto') {
+								} else if (gridster.rowHeight === 'auto') {
 
 									var targetHeight = $elem[0].offsetHeight > 0 ? $elem[0].offsetHeight : $elem.parent()[0].offsetHeight;
 									gridster.curRowHeight = targetHeight / gridster.maxRows;
@@ -2259,6 +2261,6 @@
 		};
 	})
 
-		;
+	;
 
 }));
